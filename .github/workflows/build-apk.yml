@@ -31,13 +31,14 @@ jobs:
           unzip -o VamsiOS_Native_Android_Project_v2.zip -d .
           test -f app/build.gradle.kts
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.9"
+            - name: Install Gradle 8.9
+        run: |
+          wget -q --tries=5 --timeout=30 https://downloads.gradle.org/distributions/gradle-8.9-bin.zip -O /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp
+          /tmp/gradle-8.9/bin/gradle --version
 
-      - name: Build APK
-        run: gradle --no-daemon assembleDebug
+            - name: Build APK
+        run: /tmp/gradle-8.9/bin/gradle --no-daemon assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
