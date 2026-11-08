@@ -9,31 +9,40 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Setup Android SDK
+      - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Extract project
-        run: unzip -o VamsiOS_Native_Android_Project.zip -d .
-
-      - name: Install Gradle
+      - name: Install Android SDK packages
         run: |
-          curl -L https://services.gradle.org/distributions/gradle-8.9-bin.zip -o gradle.zip
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Extract VamsiOS project
+        run: |
+          unzip -o VamsiOS_Native_Android_Project_v2.zip -d .
+          test -f app/build.gradle.kts
+          test -f app/src/main/AndroidManifest.xml
+
+      - name: Install Gradle 8.9
+        run: |
+          curl -fL https://services.gradle.org/distributions/gradle-8.9-bin.zip -o gradle.zip
           unzip -q gradle.zip -d /tmp
 
-      - name: Build APK
-        run: /tmp/gradle-8.9/bin/gradle assembleDebug
+      - name: Build debug APK
+        run: /tmp/gradle-8.9/bin/gradle --no-daemon assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: VamsiOS-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
