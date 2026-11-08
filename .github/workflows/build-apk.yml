@@ -20,27 +20,29 @@ jobs:
           java-version: "17"
 
       - name: Install Android SDK packages
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK components
         run: |
-          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | head -n 1)
-          yes | "$SDKMANAGER" --licenses
-          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Extract VamsiOS
         run: |
           unzip -o VamsiOS_Native_Android_Project_v2.zip -d .
           test -f app/build.gradle.kts
 
-      - name: Install Gradle
-        run: |
-          curl -L https://services.gradle.org/distributions/gradle-8.9-bin.zip -o gradle.zip
-          unzip -q gradle.zip -d /tmp
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
 
       - name: Build APK
-        run: /tmp/gradle-8.9/bin/gradle --no-daemon assembleDebug
+        run: gradle --no-daemon assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: VamsiOS-APK
           path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
+          
